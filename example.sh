@@ -1,0 +1,1 @@
+docker run -it -e "DBREL=31.5.1" -e "RELEASE=21.0.13-x86_64,21.0.13.1-x86_64" --net=host --name=slc6-21.0.13.1 -v /docker/shared/atlas.cern.ch/repo/sw:/cvmfs/atlas.cern.ch/repo/sw  desalvo/slc6-atlassw /bin/bash

@@ -1,0 +1,9 @@
+#!/bin/sh
+lock-install
+cvmfs_server transaction atlas.cern.ch
+\ls -d /cvmfs/atlas.cern.ch/repo/sw/software/21.0/{*/21.0.*,Geant4/share/*,sw/lcg/*,tdaq/*,tdaq-common/*} | while read dir; do
+    touch $dir/.cvmfscatalog
+done
+cvmfs_server publish atlas.cern.ch
+unlock-install
+exit
