@@ -34,7 +34,7 @@ docker run -it -e "DBREL=31.5.1" -e "RELEASE=21.0.13-x86_64,21.0.13.1-x86_64" --
 Contributors
 ------------
 
-* https://github.com/desalvo/puppet-frontier/graphs/contributors
+* https://github.com/desalvo/atlas-sw-docker/graphs/contributors
 
 Release Notes
 -------------
