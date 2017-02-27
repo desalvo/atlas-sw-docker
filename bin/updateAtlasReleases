@@ -16,6 +16,7 @@ Usage: `basename $0` [OPTION]
    --max-installs <max>               Exit after <max> installations
    --nodb                             Skip the autoconfiguration from the DB
    --platform|-p <platform name>      Force platform for pacman
+   --project-type|-T <project type>   Override the project type
    --release|-r <release name>        Release to be installed/removed,
                                       comma separated list
    --remove|-R                        Remove the give release
@@ -113,6 +114,7 @@ TMPRELLIST=/tmp/tmp.rellist.$$
 TRANSACTION=/tmp/tmp.transaction.$$
 [ -z "$PHYSPATH" ] && PHYSPATH="$PWD/software/@RELARCHDIR@/@RELVER@"
 [ -z "$PHYSPATHCMAKE" ] && PHYSPATHCMAKE="$PWD/software/@CMAKERELDIR@"
+[ -z "$ANALPHYSPATHCMAKE" ] && ANALPHYSPATHCMAKE="$PWD/ASG/@CMAKERELDIR@"
 [ -z "$DEFARCH" ]  && DEFARCH="i686-slc5-gcc43-opt"
 [ -z "$DEFLINK" ]  && DEFLINK="$PWD/software/@RELVER@"
 [ -z "$SITECONF" ] && SITECONF="$PWD/AtlasSiteConfig.sh"
@@ -133,7 +135,7 @@ rc=$?
 if [ $rc -ne 0 ]; then
   exit $rc
 fi
-#echo "Starting the update"
+echo "Starting the update"
 $CVMFSTRANSACTION
 
 if [ -z "$SKIPDBREL" ] ; then
@@ -166,12 +168,16 @@ if [ -s $TMPRELLIST ] ; then
         CMAKERELDIR="`echo $RELVER | cut -d: -f2- | cut -d. -f 1-2`"
         [ "$RELBUILD" == "cmake" ] && REL_PHYSPATH="$PHYSPATHCMAKE" || REL_PHYSPATH="$PHYSPATH"
         if [ -s "$INSTCONF" ] ; then
-            INSTTMPL="`grep -i ^${RELCAT}_inst= $INSTCONF | cut -d= -f 2`"
+            REL_PHYSPATH_OVERRIDE="`grep -i ^${RELCAT}_${RELBUILD}_path= $INSTCONF | cut -d= -f 2`"
+            [ -n "$REL_PHYSPATH_OVERRIDE" ] && REL_PHYSPATH="$REL_PHYSPATH_OVERRIDE"
+            INSTTMPL="`grep -i ^${RELCAT}_${RELBUILD}_inst= $INSTCONF | cut -d= -f 2`"
+            [ -z "$INSTTMPL" ] && INSTTMPL="`grep -i ^${RELCAT}_inst= $INSTCONF | cut -d= -f 2`"
             if [ -z "$INSTTMPL" ] ; then
                 RELCAT1="`echo $RELCAT | cut -d- -f 1`"
                 INSTTMPL="`grep -i ^${RELCAT1}_inst= $INSTCONF | cut -d= -f 2`"
             fi
-            RMTMPL="`grep -i ^${RELCAT}_rm= $INSTCONF | cut -d= -f 2`"
+            RMTMPL="`grep -i ^${RELCAT}_${RELBUILD}_rm= $INSTCONF | cut -d= -f 2`"
+            [ -z "$RMTMPL" ] && RMTMPL="`grep -i ^${RELCAT}_rm= $INSTCONF | cut -d= -f 2`"
             if [ -z "$RMTMPL" ] ; then
                 RELCAT1="`echo $RELCAT | cut -d- -f 1`"
                 RMTMPL="`grep -i ^${RELCAT1}_rm= $INSTCONF | cut -d= -f 2`"
@@ -201,7 +207,7 @@ if [ -s $TMPRELLIST ] ; then
         fi
         if [ $INSTALL -eq 1 ] ; then
             if [ -z "$INSTTMPL" ] ; then
-                INSTTMPL="-a @RELNAME@ -i @RELVER@ -p @PHYSPATH@ --disk-free 0:0 --site-config @SITECONF@ --no-tag $DBOPTS --relative-links --cvmfs-install $PACMAN_PLATFORM"
+                INSTTMPL="-a @RELNAME@ -i @RELVER@ -p @PHYSPATH@ --site-config @SITECONF@ --no-tag $DBOPTS --relative-links --cvmfs-install $PACMAN_PLATFORM"
                 [ "$RELARCHDIR" == "$DEFARCH" -a "$RELMAIN" == "$RELVER" ] && INSTTMPL="$INSTTMPL --physical-link @DEFLINK@"
             fi
             [ -n "$PRJTYPE" ] && INSTTMPL="$INSTTMPL $PRJTYPE"
